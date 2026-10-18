@@ -1,0 +1,138 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+.env.*.local
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+test-results/
+
+# Dependencies
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+*.logs
+
+# OS
+.DS_Store
+Thumbs.db
+.env.swp
+.env.swo
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Documentation
+docs/
+*.md
+README.md
+CHANGELOG.md
+
+# Misc
+.docker
+docker-compose.override.yml
+.dockerignore
+Dockerfile.dev
+Makefile
+*.pem
+*.key
+*.crt
+
+# Node modules (если используется frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Development files
+dev.sh
+test.sh
+.editorconfig
+
+# Pre-commit hooks
+.pre-commit-config.yaml
+.pre-commit-hooks.yaml
+
+# Type checking
+mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+temp/
+tmp/
