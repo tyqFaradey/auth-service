@@ -26,6 +26,5 @@ class User(Base):
         default=dt.now(datetime.UTC),
         onupdate=dt.now(datetime.UTC),
     )
-    last_login: Mapped[dt] = mapped_column(
-        DateTime(timezone=True), default=dt.now(datetime.UTC)
-    )
+    last_login: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=True)
+    
