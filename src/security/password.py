@@ -21,8 +21,9 @@ class PasswordHasher:
         logger.debug("Verifying password")
         try:
             result = self._hasher.verify(password_hash, password)
-        except (VerificationError, InvalidHashError):
+        except VerificationError, InvalidHashError:
             logger.debug("Password verification failed")
             return False
         logger.debug("Password verified")
-        return result
+        logger.debug(result)
+        return result  # WORNING

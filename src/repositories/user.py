@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.user import User
+from models import User
 from utils import get_logger
 
 logger = get_logger(__name__)

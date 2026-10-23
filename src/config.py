@@ -8,9 +8,10 @@ class RunConfig(BaseModel):
 
 
 class SecurityConfig(BaseModel):
-    secret_key: str
+    access_secret: str
+    refresh_secret: str
     algorithm: str = "HS256"
-    access_token_expire: int = 15
+    access_token_expire: int = 10
     refresh_token_expire: int = 14
 
 

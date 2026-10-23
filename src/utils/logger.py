@@ -3,7 +3,7 @@ import sys
 
 
 def setup_logging(
-    level: int | str = logging.INFO,
+    level: int | str = logging.DEBUG,
 ) -> None:
     logging.basicConfig(
         level=level,
