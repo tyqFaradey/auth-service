@@ -15,6 +15,19 @@ class SecurityConfig(BaseModel):
     refresh_token_expire: int = 14
 
 
+class RedisConfig(BaseModel):
+    user: str
+    password: str
+    host: str
+    port: str
+    database: str
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        return f"redis://:{self.password}@{self.host}:{self.port}/{self.database}"
+
+
 class DatabaseConfig(BaseModel):
     user: str
     password: str
@@ -32,6 +45,7 @@ class Settings(BaseSettings):
     run: RunConfig
     security: SecurityConfig
     database: DatabaseConfig
+    redis: RedisConfig
 
     model_config = SettingsConfigDict(
         env_file=".env",

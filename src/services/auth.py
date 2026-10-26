@@ -1,7 +1,7 @@
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, status
 
 from models import User
-from repositories import RefreshRepository, UserRepository
+from repositories import RefreshTokenRepository, UserRepository
 from security import Jwt, PasswordHasher
 from utils import get_logger
 
@@ -12,7 +12,7 @@ class AuthService:
     def __init__(
         self,
         user_repository: UserRepository,
-        refresh_repository: RefreshRepository,
+        refresh_repository: RefreshTokenRepository,
         jwt_service: Jwt,
         password_service: PasswordHasher,
     ):
@@ -43,7 +43,14 @@ class AuthService:
 
         return user
 
-    async def login(self, username: str, password: str) -> tuple[str, str]:
+    async def login(
+        self,
+        username: str,
+        password: str,
+        device_id: str,
+        user_agent: str,
+        ip_address: str,
+    ) -> tuple[str, str]:
         logger.info("Login attempt: username=%s", username)
         user = await self.user_repository.get_by_username(username)
 
@@ -57,46 +64,57 @@ class AuthService:
 
         logger.debug("Creating token pair for user: user_id=%s", user.id)
         access_token, refresh_token = self.jwt_service.create_tokens(user.id)
-        await self.refresh_repository.add(user.id, refresh_token)
+
+        await self.refresh_repository.add(
+            user_id=user.id,
+            device_id=device_id,
+            token=refresh_token,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
 
         logger.info("Login successful: username=%s", username)
 
         return access_token, refresh_token
 
-    async def refresh(self, request: Request) -> tuple[str, str]:
-        refresh_token = request.cookies.get("refresh_token")
+    async def refresh(
+        self,
+        old_refresh_token: str,
+        device_id: str,
+        ip_address: str,
+    ) -> tuple[str, str]:
 
-        if not refresh_token:
+        user_id = self.jwt_service.validate_refresh_token(old_refresh_token)
+
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Refresh token missing",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        user_id = self.jwt_service.validate_refresh_token(refresh_token)
+        is_valid = await self.refresh_repository.verify(
+            user_id=user_id,
+            device_id=device_id,
+            token=old_refresh_token,
+            ip_address=ip_address,
+        )
 
-        if not user_id:
+        if not is_valid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token not valid",
+                detail="Refresh token missing",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-
-        stored = await self.refresh_repository.get_by_user_id(user_id)
-
-        if not stored:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token not valid",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        await self.refresh_repository.delete(user_id)
 
         logger.debug("Creating token pair for user: user_id=%s", user_id)
         access_token, refresh_token = self.jwt_service.create_tokens(user_id)
 
-        await self.refresh_repository.add(user_id, refresh_token)
+        await self.refresh_repository.rotate_token(
+            user_id=user_id,
+            device_id=device_id,
+            new_token=refresh_token,
+        )
 
         logger.debug("Refresh tokens successful: user.id=%s", user_id)
 

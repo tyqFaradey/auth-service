@@ -1,11 +1,13 @@
 from typing import Annotated
 
 from fastapi import Depends
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from database import database_manager
-from repositories import RefreshRepository, UserRepository
+from redisdb import redis_manager
+from repositories import RefreshTokenRepository, UserRepository
 from security import Jwt, PasswordHasher
 from services import AuthService
 
@@ -14,8 +16,8 @@ def get_user_repository(session: DbSessionDep) -> UserRepository:
     return UserRepository(session)
 
 
-def get_refresh_repository(session: DbSessionDep) -> RefreshRepository:
-    return RefreshRepository(session)
+def get_refresh_repository(connection: RedisDep) -> RefreshTokenRepository:
+    return RefreshTokenRepository(connection)
 
 
 def get_password_service() -> PasswordHasher:
@@ -47,8 +49,12 @@ def get_auth_service(
 
 
 DbSessionDep = Annotated[AsyncSession, Depends(database_manager.get_session)]
+RedisDep = Annotated[Redis, Depends(redis_manager.get_connection)]
+
 UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
-RefreshRepositoryDep = Annotated[RefreshRepository, Depends(get_refresh_repository)]
+RefreshRepositoryDep = Annotated[
+    RefreshTokenRepository, Depends(get_refresh_repository)
+]
 PasswordHasherDep = Annotated[PasswordHasher, Depends(get_password_service)]
 JwtDep = Annotated[Jwt, Depends(get_jwt_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
