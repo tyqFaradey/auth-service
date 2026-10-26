@@ -1,6 +1,8 @@
+import uuid
 from typing import Annotated
 
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +12,8 @@ from redisdb import redis_manager
 from repositories import RefreshTokenRepository, UserRepository
 from security import Jwt, PasswordHasher
 from services import AuthService
+
+security = HTTPBearer()
 
 
 def get_user_repository(session: DbSessionDep) -> UserRepository:
@@ -48,8 +52,17 @@ def get_auth_service(
     )
 
 
+async def get_current_user(
+    service: AuthServiceDep,
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+):
+    return await service.get_current_user(credentials.credentials)
+
+
 DbSessionDep = Annotated[AsyncSession, Depends(database_manager.get_session)]
 RedisDep = Annotated[Redis, Depends(redis_manager.get_connection)]
+
+CurrentUserDep = Annotated[uuid.UUID, Depends(get_current_user)]
 
 UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
 RefreshRepositoryDep = Annotated[

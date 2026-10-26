@@ -58,6 +58,13 @@ class Jwt:
         )
         return access_token, refresh_token
 
+    def validate_access_token(self, access_token: str) -> uuid.UUID | None:
+        token = jwt.decode(access_token, self.access_secret, [self.algorithm])
+
+        if not token:
+            return
+        return token["sub"]
+
     def validate_refresh_token(self, refresh_token: str) -> uuid.UUID | None:
         token = jwt.decode(refresh_token, self.refresh_secret, [self.algorithm])
         if not token:

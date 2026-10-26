@@ -6,7 +6,7 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from api.dependencies import AuthServiceDep
+from api.dependencies import AuthServiceDep, CurrentUserDep, RefreshRepositoryDep
 from config import settings
 from schemas.auth import RegisterRequest
 from schemas.user import UserResponse
@@ -82,3 +82,17 @@ async def refresh(service: AuthServiceDep, request: Request):
     response = make_responce(access_token, refresh_token)
 
     return response
+
+
+@router.delete("/logout")
+async def logout(
+    device_id: str | None,
+    user_id: CurrentUserDep,
+    token_repository: RefreshRepositoryDep,
+):
+    if device_id:
+        await token_repository.delete_by_device(user_id, device_id)
+        return {"status": "logged out from device"}
+    else:
+        await token_repository.delete_all(user_id)
+        return {"status": "logged out from all devices"}

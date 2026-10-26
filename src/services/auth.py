@@ -1,3 +1,6 @@
+import uuid
+
+import jwt
 from fastapi import HTTPException, status
 
 from models import User
@@ -20,7 +23,32 @@ class AuthService:
         self.refresh_repository = refresh_repository
         self.password_service = password_service
         self.jwt_service = jwt_service
+
         logger.debug("AuthService initialized")
+
+    async def get_current_user(self, token: str) -> uuid.UUID:
+
+        try:
+            user_id = self.jwt_service.validate_access_token(token)
+
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token: no user_id",
+                )
+
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+            )
+        except jwt.InvalidTokenError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
+
+        return user_id
 
     async def register(self, username: str, email: str, password: str) -> User:
         logger.info("Registering user: username=%s", username)
@@ -119,3 +147,16 @@ class AuthService:
         logger.debug("Refresh tokens successful: user.id=%s", user_id)
 
         return access_token, refresh_token
+
+    async def logout(
+        self,
+        user_id: CurrentUserDep,
+        device_id: str | None = None,
+    ):
+
+        if device_id:
+            await self.refresh_repository.delete_by_device(user_id, device_id)
+            return {"status": "logged out from device"}
+        else:
+            await self.refresh_repository.delete_all(user_id)
+            return {"status": "logged out from all devices"}
